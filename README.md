@@ -28,3 +28,5 @@
 
 - [Интерактивное изучение ветвления в Git](https://learngitbranching.js.org/?locale=ru_RU)
 
+[2.4 Инструменты Git](homework/2.4/README.md)
+
