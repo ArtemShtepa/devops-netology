@@ -31,3 +31,6 @@
 [2.4 Инструменты Git](homework/2.4/README.md)
 
 [3.1 Работа в терминале. Часть 1](homework/3.1/README.md)
+
+[3.2 Работа в терминале. Часть 2](homework/3.2/README.md)
+

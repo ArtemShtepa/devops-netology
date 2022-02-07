@@ -66,7 +66,7 @@ end
 
 Пример:
 
-```commandline
+```console
 vagrant@vagrant:~$ {
 > echo "A"; echo "B"
 > }
@@ -83,7 +83,7 @@ vagrant@vagrant:~$
 
 - Использование списка
 
-```commandline
+```console
 vagrant@vagrant:~$ echo file_{one,two,three}.dat
 file_one.dat file_two.dat file_three.dat
 vagrant@vagrant:~$
@@ -91,7 +91,7 @@ vagrant@vagrant:~$
 
 - Использование диапазона
 
-```commandline
+```console
 vagrant@vagrant:~$ echo file_{1..3}.dat
 file_1.dat file_2.dat file_3.dat
 vagrant@vagrant:~$
@@ -102,7 +102,7 @@ vagrant@vagrant:~$
 Также используется для расширения параметров (явного указания, где заканчивается имя переменной).
 
 Примеры:
-```commandline
+```console
 vagrant@vagrant:~$ echo BEGIN${PATH}END
 BEGIN/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/binEND
 vagrant@vagrant:~$
@@ -115,7 +115,7 @@ vagrant@vagrant:~$
 
 Создать несколько файлов однократным вызовом можно следующей строкой `touch <file_1> <file_2> .. <file_n>`, а подобный список можно сгенерировать при помощи конструкции `{ }` с указанием диапазона.
 
-```commandline
+```console
 vagrant@vagrant:~/test$ touch file{1..100000}.dat
 bash: /usr/bin/touch: Argument list too long
 vagrant@vagrant:~/test$ touch {1..100000}.dat
@@ -126,7 +126,7 @@ vagrant@vagrant:~/test$
 
 Но существует ограничение операционной системы на размер командной строки:
 
-```commandline
+```console
 vagrant@vagrant:~/test$ getconf ARG_MAX
 2097152
 vagrant@vagrant:~/test$
