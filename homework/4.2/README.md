@@ -182,7 +182,6 @@ while True:
         if srv_ip != "":
             print(f"{srv} - {srv_ip}")
             if SERVICES[srv] != srv_ip:
-                rewrite_log = True
                 if SERVICES[srv] != "":
                     print(f"[ERROR] {srv} IP mismatch: {SERVICES[srv]} {srv_ip}")
                 SERVICES[srv] = srv_ip
