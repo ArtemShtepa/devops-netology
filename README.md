@@ -62,6 +62,8 @@
 
 [5.4 Оркестрация группой Docker контейнеров на примере Docker Compose](homework/5.4/)
 
+[5.5. Оркестрация кластером Docker контейнеров на примере Docker Swarm](homework/5.5/)
+
 [6.1 Типы и структура СУБД](homework/6.1/)
 
 [6.2 SQL](homework/6.2/)
