@@ -9,7 +9,7 @@
 
 **Решение:**
 
-Образ БД взят с [DockerHub](https://hub.docker.com/_/postgres) с тэгом `12-alpine`
+Образ СУБД взят с [DockerHub](https://hub.docker.com/_/postgres) с тэгом `12-alpine`
 
 Документация к образу на [GitHub](https://github.com/docker-library/docs/blob/master/postgres/README.md)
 
