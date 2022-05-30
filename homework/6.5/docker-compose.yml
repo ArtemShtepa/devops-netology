@@ -1,0 +1,17 @@
+version: "2.4"
+
+services:
+  es-node-1:
+    image: artemshtepa/my-es-7:2
+    container_name: es-master
+    restart: always
+    environment:
+      - ES_NODE_NAME=netology_test
+      - discovery.type=single-node
+    volumes:
+      - ./es-data:/var/lib/elasticsearch/data
+      - ./es-backup:/usr/share/elasticsearch/snapshots
+    ports:
+      - 9200:9200
+    expose:
+      - 9300

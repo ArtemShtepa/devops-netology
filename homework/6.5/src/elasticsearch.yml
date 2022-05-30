@@ -1,0 +1,9 @@
+cluster.name: "my-elastic-cluster"
+network.host: 0.0.0.0
+
+path:
+  data: /var/lib/elasticsearch/data
+  logs: /var/log/elasticsearch
+  repo: /usr/share/elasticsearch/snapshots
+
+node.name: ${ES_NODE_NAME}
