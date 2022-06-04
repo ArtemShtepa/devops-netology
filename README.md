@@ -72,5 +72,7 @@
 
 [6.4 PostgreSQL](homework/6.4/)
 
+[6.6 Troubleshooting](homework/6.6/)
+
 [7.1 Инфраструктура как код](homework/7.1/)
 
