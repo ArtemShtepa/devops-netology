@@ -12,7 +12,7 @@
 
 [1.1 Введение в DevOps](homework/1.1/README.md)
 
-[2.1 Системы контроля версий](terraform/README.md)
+[2.1 Системы контроля версий](homework/2.1/)
 
 2.2 Основы git
 
@@ -77,4 +77,6 @@
 [6.6 Troubleshooting](homework/6.6/)
 
 [7.1 Инфраструктура как код](homework/7.1/)
+
+[7.2 Облачные провайдеры и синтаксис Terraform](homework/7.2/)
 
