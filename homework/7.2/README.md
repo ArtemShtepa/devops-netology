@@ -563,7 +563,7 @@ sa@debian:~/terra$
 
 ---
 
-Дополнительные материалы:
+## Дополнительные материалы:
 
 Описание ресурса [yandex_compute_image](https://registry.tfpla.net/providers/yandex-cloud/yandex/latest/docs/resources/compute_image)
 

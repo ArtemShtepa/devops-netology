@@ -203,6 +203,12 @@ InterfaceError: (InterfaceError) 2013: Lost connection to MySQL server during qu
 
 *`maintenance_work_mem` - это параметр памяти, используемый для задач обслуживания.*
 
+### *Дополнение от **Алексея**:*
+
+Actual max RAM = `shared_buffers` + (`temp_buffers` + `work_mem`) * `max_connections`
+
+Можно ограничить число одновременных подключений к СУБД используя мультиплексирование через пул подключений, например, **PgBouncer**.
+
 ---
 
 ## Дополнительные материалы по **Redis**
