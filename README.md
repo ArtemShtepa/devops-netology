@@ -87,3 +87,5 @@
 [7.5 Основы golang](homework/7.5/)
 
 [7.6 Написание собственных провайдеров для Terraform](homework/7.6/)
+
+[8.1 Введение в Ansible](homework/8.1/)
