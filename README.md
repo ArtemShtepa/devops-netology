@@ -89,3 +89,5 @@
 [7.6 Написание собственных провайдеров для Terraform](homework/7.6/)
 
 [8.1 Введение в Ansible](homework/8.1/)
+
+[8.2 Работа с Playbook](homework/8.2/)
