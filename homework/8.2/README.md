@@ -9,9 +9,9 @@
 
 ## Основная часть
 
-### 1. Приготовьте свой собственный inventory файл `prod.yml`.
+### 1. Приготовьте свой собственный inventory файл `prod.yml`
 
-В качестве инфраструктуры были выбраны Docker контейнеры, со следующим манифестом:
+Так как ["нормальные" герои всегда идут в обход](https://www.youtube.com/watch?v=R9CJ9BVtBJg), в качестве инфраструктуры были выбраны **Docker** контейнеры, со следующим манифестом:
 
 ```yaml
 ---
@@ -35,7 +35,7 @@ services:
 ...
 ```
 
-Соответствующий **inventory** файл `inventory/prod.yml`
+Соответствующий **inventory** файл `inventory/prod.yml`:
 
 ```yaml
 ---
@@ -52,15 +52,16 @@ vector:
 
 ---
 
-### 2. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает [vector](https://vector.dev).
+### 2. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает [vector](https://vector.dev)
 
 Для использования модулей из следующего пункта подходит установка **Vector** в [ручном режиме из архива](https://vector.dev/docs/setup/installation/manual/from-archives/#linux-x86_64)
 
 Шаги установки:
 1. Скачать архив по ссылке `https://packages.timber.io/vector/<version>/vector-<version>-x86_64-unknown-linux-musl.tar.gz`, где `<version>` - версия **Vector**
 1. Распаковать архив в произвольный каталог
+1. Исполняемый файл будет находится по пути `bin/vector`
 1. Примеры настроек демонов будут в каталоге `etc/systemd`
-1. Примеры конфигурационных файлов Vector будут в каталоге `config`
+1. Примеры конфигурационных файлов **Vector** будут в каталоге `config`
 
 ---
 
@@ -68,7 +69,7 @@ vector:
 
 Следующие модули отвечают за:
 - `get_url` - Скачиваение файла по URL и сохранение в системе (поддерживает настройку прав и т.п.)
-- `template` - Формирование файла в целевой системе на осноше указанного файла шаблона. Изменение данных реализуется через [jinja2](https://jinja.palletsprojects.com/en/latest/templates/)
+- `template` - Формирование файла в целевой системе на основе указанного файла шаблона. Изменение данных реализуется через [jinja2](https://jinja.palletsprojects.com/en/latest/templates/)
 - `unarchive` - Распаковка ахвиров в целевую систему
 - `file` - Управление файлами и каталогами, в том числе проверка существования, создание и удаление
 
@@ -78,17 +79,16 @@ vector:
 
 ### 4. Tasks должны: скачать нужной версии дистрибутив, выполнить распаковку в выбранную директорию, установить vector.
 
-Для удобства используемую версию будет задаваться в параметрах `group_vars/vector/vars.yml`
+Для удобства используемая версию будет задаваться в параметрах `group_vars/vector/vars.yml`:
 
 ```yaml
 ---
 vector_version: "0.23.0"
-vector_file_log_structure: "file String, host String, message String, timestamp DateTime64"
 vector_datadir: "/var/lib/vector"
 ...
 ```
 
-Также в перременных будет структура таблицы логов (**vector_file_log_structure**) и каталог данных **Vector**
+Также в переменных будет задан каталог данных **Vector**
 
 ---
 
@@ -96,7 +96,7 @@ vector_datadir: "/var/lib/vector"
 
 **Ansible-lint** устанавливается отдельно от **Ansible** по [инструкции](https://ansible-lint.readthedocs.io/en/latest/installing/)
 
-Пример работы анализатора кода
+Пример работы анализатора кода:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-lint
@@ -123,7 +123,7 @@ sa@debian:~/my-ansible-2$
 
 В данном примере, в первом случае много пустых строк, а в остальных неправильное значение **Boolean** переменной, а именно: `remote_src: yes` как указано в [документации](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html), что не является корректным.
 
-При отсутствии ошибок вывод будет примерно следующим
+При отсутствии ошибок вывод будет примерно следующим:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-lint
@@ -131,13 +131,14 @@ Failed to guess project directory using git: fatal: не найден git реп
 WARNING  Failed to discover lintable files using git: fatal: не найден git репозиторий (или один из родительских каталогов): .git
 sa@debian:~/my-ansible-2$
 ```
+
 ---
 
 ### 6. Попробуйте запустить playbook на этом окружении с флагом `--check`.
 
 Ключ `--check` позволяет запустить **playbook** без внесения каких-либо изменений на целевой машине, вместо чего **Ansible** попытается предсказать какие изменения будут.
 
-К сожалению, ничего интересного на моём окружении вывод команды не содержит, мало того **playbook** будет завершён практически вначале.
+К сожалению, ничего интересного на моём окружении вывод команды не содержит, мало того **playbook** будет завершён практически вначале:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-playbook -i inventory/prod.yml site.yml --check
@@ -189,7 +190,7 @@ sa@debian:~/my-ansible-2$
 
 ### 7. Запустите playbook на `prod.yml` окружении с флагом `--diff`. Убедитесь, что изменения на системе произведены.
 
-Флаг `--diff` добавляет в вывод блоки `--- before` и `+++ after`, в которых содержится информация по производимым изменениям в целевой системе
+Флаг `--diff` добавляет в вывод блоки `--- before` и `+++ after`, в которых содержится информация по производимым изменениям в целевой системе:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-playbook -i inventory/prod.yml site.yml --diff
@@ -393,7 +394,7 @@ sa@debian:~/my-ansible-2$
 
 Идемпотентность с флагом `--diff` определыется по отсутствию блоков `--- before` и `+++ after`.
 
-Также об идемпотентность можно судить по отсутствию блоков `changed` в выводе `PLAY RECAP`
+Также об идемпотентность можно судить по отсутствию блоков `changed` в выводе `PLAY RECAP`:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-playbook -i inventory/prod.yml site.yml --diff
@@ -488,7 +489,7 @@ sa@debian:~/my-ansible-2$
 
 ### 9. Подготовьте README.md файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
 
-Вывод всех тэгов осуществляется командой `ansible-playbook -i <inventory> <playbook> --list-tags`, где `<inventory>` - описание окружения для **playbook** `<playbook>`
+Вывод всех тэгов осуществляется командой `ansible-playbook -i <inventory> <playbook> --list-tags`, где `<inventory>` - описание окружения для **playbook** `<playbook>`:
 
 ```console
 sa@debian:~/my-ansible-2$ ansible-playbook site.yml --list-tags -i inventory/prod.yml
@@ -510,11 +511,11 @@ sa@debian:~/my-ansible-2$
 
 ### 10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-02-playbook` на фиксирующий коммит, в ответ предоставьте ссылку на него.
 
-Ссылка на репозиторий 
+Ссылка на репозиторий [my-ansible](https://github.com/ArtemShtepa/my-ansible/tree/08-ansible-02-playbook)
 
 ---
 
-Проверка функционирования связки **Clickhouse** и **Vector**
+## Проверка функционирования связки **Clickhouse** и **Vector**
 
 ```console
 sa@debian:~/my-ansible-2$ docker exec -ti vector-01 bash
