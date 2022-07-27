@@ -91,3 +91,5 @@
 [8.1 Введение в Ansible](homework/8.1/)
 
 [8.2 Работа с Playbook](homework/8.2/)
+
+[8.3 Использование Yandex Cloud](homework/8.3/)
