@@ -93,3 +93,5 @@
 [8.2 Работа с Playbook](homework/8.2/)
 
 [8.3 Использование Yandex Cloud](homework/8.3/)
+
+[8.4 Работа с Roles](homework/8.4/)
