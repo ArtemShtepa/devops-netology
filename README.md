@@ -95,3 +95,5 @@
 [8.3 Использование Yandex Cloud](homework/8.3/)
 
 [8.4 Работа с Roles](homework/8.4/)
+
+[9.1 Жизненный цикл ПО](homework/9.1/)
