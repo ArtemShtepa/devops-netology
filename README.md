@@ -95,7 +95,7 @@
 - 9.1 [Жизненный цикл ПО](homework/9.1/)
 - 9.2 DevOps и SRE (тест)
 - 9.3 [Процессы CI/CD](homework/9.3/)
-- 9.4 Jenkins
+- 9.4 [Jenkins](homework/9.4/)
 - 9.5 TeamCity
 - 9.6 Gitlab
 

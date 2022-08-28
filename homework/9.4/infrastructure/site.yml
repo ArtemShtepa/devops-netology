@@ -1,0 +1,233 @@
+---
+- name: Generate dynamic inventory
+  gather_facts: false
+  hosts: localhost
+  become: false
+  tasks:
+    - name: Get instances from Yandex.Cloud CLI
+      ansible.builtin.command: "yc compute instance list --format=yaml"
+      register: yc_instances
+      failed_when: yc_instances.rc != 0
+      changed_when: false
+    - name: Set instances to facts
+      ansible.builtin.set_fact:
+        _yc_instances: "{{ yc_instances.stdout | from_yaml }}"
+    - name: Add instances IP to hosts
+      ansible.builtin.add_host:
+        ansible_host: "{{ item['network_interfaces'][0]['primary_v4_address']['one_to_one_nat']['address'] }}"
+        ansible_ssh_user: "{{ item['boot_disk']['device_name'] }}"
+        host: "{{ item['name'] }}"
+      loop: "{{ _yc_instances }}"
+      changed_when: false
+    - name: Check instance count
+      ansible.builtin.debug:
+        msg: "Total instance count: {{ _yc_instances | length }}"
+      failed_when: _yc_instances | length == 0
+- name: Approve SSH fingerprint
+  gather_facts: false
+  hosts: all
+  tasks:
+    - name: Check known_hosts for
+      ansible.builtin.command: ssh-keygen -F {{ inventory_hostname }}
+      register: check_entry_in_known_hosts
+      failed_when: false
+      changed_when: false
+      ignore_errors: true
+      delegate_to: localhost
+    - name: Skip question for adding host key
+      ansible.builtin.set_fact:
+        # StrictHostKeyChecking can be "accept-new"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      when: check_entry_in_known_hosts.rc == 1
+    - name: Add SSH fingerprint to known host
+      ansible.builtin.setup:
+      when: check_entry_in_known_hosts.rc == 1
+
+- name: Preapre all hosts
+  hosts: all
+  tasks:
+    - name: Wait for instances ready
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 10
+        timeout: 300
+      delegate_to: localhost
+    - name: Create group
+      become: true
+      group:
+        name: "{{ user_group }}"
+        state: present
+    - name: Create user
+      become: true
+      user:
+        name: "{{ user_name }}"
+        generate_ssh_key: true
+      register: ssh_key_info
+    - name: Echo Public Key
+      debug:
+        var: ssh_key_info['ssh_public_key']
+    - name: Install JDK
+      become: true
+      package:
+        name: "{{ java_packages }}"
+        state: present
+      ignore_errors: true
+    - name: Ensure GitHub are present in known_hosts file
+      become: true
+      become_user: "{{ jenkins_user_name }}"
+      known_hosts:
+        name: "github.com"
+        state: present
+        key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+        hash_host: true
+
+- name: Get Jenkins master installed
+  hosts: jenkins_masters
+  tasks:
+    - name: Get repo Jenkins
+      become: true
+      get_url:
+        url: https://pkg.jenkins.io/redhat/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+        validate_certs: false
+    - name: Add Jenkins key
+      become: true
+      rpm_key:
+        key: https://pkg.jenkins.io/redhat/jenkins.io.key
+        state: present
+        validate_certs: false
+    - name: Install epel-release
+      become: true
+      yum:
+        name: epel-release
+        state: present
+    - name: Install Jenkins and requirements
+      become: true
+      yum:
+        name:
+          - jenkins
+          - git
+        state: present
+      register: jenkins_installed
+    - name: Ensure jenkins agents are present in known_hosts file
+      become: true
+      become_user: "{{ jenkins_user_name }}"
+      known_hosts:
+        name: "{{ hostvars[item].ansible_host }}"
+        state: present
+        key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+        hash_host: true
+      with_items: "{{ groups.jenkins_agents }}"
+    - name: Start Jenkins
+      become: true
+      systemd:
+        name: jenkins
+        state: restarted
+        enabled: true
+      when: jenkins_installed is changed
+    - name: Get initial password
+      become: true
+      command: "cat /var/lib/jenkins/secrets/initialAdminPassword"
+      changed_when: false
+      register: secret_pw
+    - name: Echo initial password
+      debug:
+        msg: "Use it to complete initialization: {{ secret_pw.stdout }}"
+    - name: Commands to get private key
+      debug:
+        msg: "ssh {{ ansible_user }}@{{ ansible_host }} sudo cat {{ hostvars['jenkins-master-01']['ssh_key_info']['ssh_key_file'] }}"
+
+- name: Prepare jenkins agent
+  hosts: jenkins_agents
+  become: true
+  become_user: "{{ jenkins_user_name }}"
+  tasks:
+    - name: Add master publickey into authorized_key
+      authorized_key:
+        user: "{{ jenkins_user_name }}"
+        state: present
+        key: "{{ hostvars['jenkins-master-01']['ssh_key_info']['ssh_public_key'] }}"
+    - name: Create agent_dir
+      become_user: root
+      file:
+        path: "{{ jenkins_agent_dir }}"
+        state: directory
+        owner: "{{ jenkins_user_name }}"
+        group: "{{ jenkins_user_group }}"
+    - name: Add docker repo
+      become_user: root
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        validate_certs: false
+    - name: Install some required
+      become_user: root
+      package:
+        name:
+          - git
+          - python39
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+    - name: Update pip
+      become_user: root
+      pip:
+        executable: pip3
+        name: pip
+        extra_args: --upgrade
+    - name: Install Ansible 2.13.5
+      become_user: root
+      pip:
+        executable: pip3
+        name:
+          - selinux==0.2.1
+          - ansible==6.5.0
+        state: present
+    - name: Install Molecule
+      become_user: root
+      pip:
+        executable: pip3
+        name:
+          - molecule==4.0.3
+          - molecule_docker==2.1.0
+        state: present
+    - name: Install Python 3.6
+      become_user: root
+      package:
+        name: python3
+        state: present
+    - name: Add local to PATH
+      lineinfile:
+        dest: ~/.bashrc
+        regexp: export PATH=$PATH:/home/jenkins/.local/bin
+        line: export PATH=$PATH:/home/jenkins/.local/bin
+    - name: Create docker group
+      become_user: root
+      group:
+        name: docker
+        state: present
+    - name: Add jenkinsuser to dockergroup
+      become_user: root
+      user:
+        name: "{{ jenkins_user_name }}"
+        groups: docker
+    - name: Restart docker
+      become_user: root
+      systemd:
+        name: docker
+        state: restarted
+        enabled: true
+    - name: Install agent.jar
+      get_url:
+        url: "http://{{ hostvars['jenkins-master-01']['ansible_host'] }}:8080/jnlpJars/agent.jar"
+        dest: "{{ jenkins_agent_dir }}"
+      register: install_agent
+      until: install_agent is succeeded
+      retries: 10
+      timeout: 10
+    - name: Agent configuration
+      debug:
+        msg: "To configure agent node use: ssh {{ ansible_host }} java -jar {{ jenkins_agent_dir }}agent.jar"
+...
