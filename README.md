@@ -96,7 +96,7 @@
 - 9.2 DevOps и SRE (тест)
 - 9.3 [Процессы CI/CD](homework/9.3/)
 - 9.4 [Jenkins](homework/9.4/)
-- 9.5 TeamCity
+- 9.5 [TeamCity](homework/9.5/)
 - 9.6 Gitlab
 
 ### Мониторинг и логи
