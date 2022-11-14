@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: api-server-world
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server-world-deployment
+  namespace: api-server-world
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      namespace: api-server-world
+      labels:
+        app: api-server
+    spec:
+      containers:
+        - name: api-server-world
+          image: cr.yandex/crpmbgvfrehkdo5qvkgc/__VERSION__
+          imagePullPolicy: Always

@@ -1,0 +1,17 @@
+stages:
+  - test
+
+test:
+  stage: test
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://localhost:2375/
+  image: cr.yandex/yc/metadata-token-docker-helper:0.2
+  services:
+    - docker:19.03.1-dind
+  script:
+    - docker run -d --rm --name api-test -p 5290:5290 cr.yandex/crpmbgvfrehkdo5qvkgc/$SERVER_IMAGE
+    - sleep 3
+    - curl -s 127.0.0.1:5290/get_info
+    - docker stop api-test

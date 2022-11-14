@@ -1,0 +1,41 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build-image:
+  stage: build
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://localhost:2375/
+  image: cr.yandex/yc/metadata-token-docker-helper:0.2
+  services:
+    - docker:19.03.1-dind
+  script:
+    - docker build . -t python-api:$CI_COMMIT_SHORT_SHA
+    - docker tag python-api:$CI_COMMIT_SHORT_SHA cr.yandex/crpmbgvfrehkdo5qvkgc/$SERVER_IMAGE
+    - docker push cr.yandex/crpmbgvfrehkdo5qvkgc/$SERVER_IMAGE
+  except:
+    - master
+
+test-image:
+  stage: test
+  trigger:
+    include: .gitlab-ci-test.yml
+  when: manual
+  except:
+    - master
+
+deploy-image:
+  stage: deploy
+  image: gcr.io/cloud-builders/kubectl:latest
+  script:
+    - kubectl config set-cluster k8s --server="$KUBE_URL" --insecure-skip-tls-verify=true
+    - kubectl config set-credentials admin --token="$KUBE_TOKEN"
+    - kubectl config set-context default --cluster=k8s --user=admin
+    - kubectl config use-context default
+    - sed -i "s/__VERSION__/$SERVER_IMAGE/" k8s.yaml
+    - kubectl apply -f k8s.yaml
+  only:
+    - master
