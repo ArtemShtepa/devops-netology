@@ -1,0 +1,12 @@
+---
+all:
+  children:
+    minikube_main:
+      children:
+        minikube_group:
+          hosts:
+            test-machine:
+  vars:
+    ansible_connection_type: paramiko
+    ansible_user: cloud-user
+...

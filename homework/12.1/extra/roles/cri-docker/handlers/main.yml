@@ -1,0 +1,11 @@
+---
+- name: Restart cri-docker daemon
+  become: true
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: restarted
+  loop:
+    - cri-docker.service
+    - cri-docker.socket
+...

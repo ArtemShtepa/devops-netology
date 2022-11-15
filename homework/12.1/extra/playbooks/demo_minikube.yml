@@ -1,0 +1,16 @@
+---
+- name: Import dynamic playbook
+  ansible.builtin.import_playbook: dynamic.yml
+- name: Demonstrate minikube
+  hosts: all
+  tasks:
+    - name: Ensure minikube is running
+      become: true
+      ansible.builtin.shell: "minikube status"
+      register: res
+      changed_when: false
+      failed_when: res.rc != 0
+    - name: Play demo role
+      include_role:
+        name: "../roles/demo-minikube"
+      when: res.rc == 0

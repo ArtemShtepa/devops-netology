@@ -1,0 +1,66 @@
+---
+- name: Import dynamic playbook
+  ansible.builtin.import_playbook: dynamic.yml
+- name: Deploy minikube
+  hosts: all
+  roles:
+    - role: "../roles/crictl"
+    - role: "../roles/minikube"
+  pre_tasks:
+    - name: Ensure curl and conntrack installed
+      become: true
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - curl
+        - conntrack
+    - name: Ensure docker installed
+      ansible.builtin.shell: "docker --version"
+      changed_when: false
+      failed_when: false
+      register: res
+    - name: Install docker by convenience script
+      become: true
+      ansible.builtin.shell: "curl -fsSL https://get.docker.com | sh"
+      when: res.rc != 0
+    - name: Check cri-docker daemon
+      ansible.builtin.service:
+        name: cri-docker.service
+        state: started
+      ignore_errors: true
+      register: res
+    - name: Import role to deploy
+      include_role:
+        name: "../roles/cri-docker"
+      when: res.failed == true
+  post_tasks:
+    - name: Install kubernetes for python
+      become: true
+      ansible.builtin.package:
+        name: python3-kubernetes
+        state: present
+    - name: Check minikube started
+      become: true
+      ansible.builtin.shell: "minikube status"
+      changed_when: res.rc == 85
+      failed_when: false
+      register: res
+    - name: Start minikube with NONE driver
+      become: true
+      ansible.builtin.shell: "minikube start --driver=none"
+      register: mk_log
+      when: res.rc == 85
+    - name: Download calico network plugin
+      ansible.builtin.get_url:
+        url: "https://docs.projectcalico.org/manifests/calico-typha.yaml"
+        dest: "~/calico.yml"
+    - name: Apply calico network plugin
+      become: true
+      kubernetes.core.k8s:
+        state: present
+        src: "/home/{{ ansible_user }}/calico.yml"
+    #- name: Apply calico network plugin
+    #  become: true
+    #  ansible.builtin.shell: "kubectl apply -f /home/{{ ansible_user }}/calico.yml"
+...

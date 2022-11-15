@@ -1,0 +1,37 @@
+---
+- name: Check KubeCtl latest version
+  ansible.builtin.uri:
+    url: "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
+    return_content: yes
+  register: kubectl_latest
+  when: kubectl_version == ""
+- name: Set KubeCtl version to latest
+  ansible.builtin.set_fact:
+    kubectl_version: kubectl_latest.content
+  when: kubectl_version == ""
+- name: Install KubeCtl binary
+  become: true
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: "{{ install_path }}/kubectl"
+    mode: +x
+- name: Check Minikube latest version
+  ansible.builtin.set_fact:
+    minikube_version: "latest"
+  when: minikube_version == ""
+- name: Install Minikube binary
+  block:
+    - name: Download from googleapis
+      become: true
+      ansible.builtin.get_url:
+        url: "https://storage.googleapis.com/minikube/releases/v{{ minikube_version }}/minikube-linux-amd64"
+        dest: "{{ install_path }}/minikube"
+        mode: +x
+  rescue:
+    - name: Download from GitHub
+      become: true
+      ansible.builtin.get_url:
+        url: "https://github.com/kubernetes/minikube/releases/download/v{{ minikube_version }}/minikube-linux-amd64"
+        dest: "{{ install_path }}/minikube"
+        mode: +x
+...

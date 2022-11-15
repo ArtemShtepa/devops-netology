@@ -1,0 +1,64 @@
+---
+- name: Enable addons
+  become: true
+  ansible.builtin.shell: "minikube addons enable {{ item }}"
+  changed_when: false
+  register: res
+  loop:
+    - "dashboard"
+    - "metrics-server"
+    - "ingress"
+- name: Create deployment for hello app
+  become: true
+  kubernetes.core.k8s:
+    state: present
+    wait: true
+    definition:
+      apiVersion: v1
+      kind: Deployment
+      metadata:
+        name: hello
+        namespace: default
+        labels:
+          app: hello
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: hello
+        template:
+          metadata:
+            labels:
+              app: hello
+          spec:
+            containers:
+            - image: k8s.gcr.io/echoserver:1.4
+              name: echoserver
+- name: Expose port for service
+  become: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: hello-srv
+        name: hello-srv
+        namespace: default
+      spec:
+        type: LoadBalancer
+        selector:
+          app: hello
+        ports:
+        - port: 8080
+          protocol: TCP
+          targetPort: 8080
+- name: Test
+  become: true
+  ansible.builtin.shell: "curl $(minikube service hello-srv --url=true)"
+  changed_when: false
+  register: res
+- name: Echo result
+  ansible.builtin.debug:
+    var: res.stdout

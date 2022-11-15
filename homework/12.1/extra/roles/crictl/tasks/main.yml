@@ -1,0 +1,12 @@
+---
+- name: Download archive from GitHub
+  ansible.builtin.get_url:
+    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl_version }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz"
+    dest: "/home/{{ ansible_user }}/crictl_binary_{{ crictl_version }}.tar.gz"
+- name: Unpack archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "/home/{{ ansible_user }}/crictl_binary_{{ crictl_version }}.tar.gz"
+    remote_src: true
+    dest: "{{ install_path }}"
+...

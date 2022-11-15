@@ -1,0 +1,69 @@
+---
+- name: Ensure Git installed
+  become: true
+  ansible.builtin.package:
+    name: git
+    state: present
+- name: Clone cri-dockerd from github
+  ansible.builtin.git:
+    repo: "https://github.com/Mirantis/cri-dockerd.git"
+    dest: "~/cri-dockerd"
+- name: Ensure Go installed
+  ansible.builtin.shell: ". ~/.bash_profile && go version"
+  ignore_errors: true
+  changed_when: false
+  register: go_res
+- name: Download Go installer
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/golang/getgo/installer_linux"
+    dest: "~/go_installer"
+    mode: +x
+  when: go_res.rc != 0
+- name: Run Go installer
+  ansible.builtin.command: "~/go_installer"
+  register: res
+  failed_when: res.rc != 0
+  when: go_res.rc != 0
+- name: Create directories
+  ansible.builtin.file:
+    path: "~/cri-dockerd/bin"
+    state: directory
+- name: Check compiled cri-dockerd
+  ansible.builtin.file:
+    path: "~/cri-dockerd/bin/cri-dockerd"
+  failed_when: false
+  register: res
+- name: Compile cri-dockerd
+  ansible.builtin.shell: ". ~/.bash_profile && go build -o bin/cri-dockerd"
+  args:
+    chdir: "~/cri-dockerd/"
+  when: res.state != "file"
+- name: Install cri-dockerd binary
+  become: true
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/cri-dockerd/bin/cri-dockerd"
+    remote_src: true
+    dest: "{{ install_path }}/cri-dockerd"
+    mode: "0755"
+- name: Install cri-docker service files
+  become: true
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/cri-dockerd/packaging/systemd/{{ item }}"
+    remote_src: true
+    dest: "/etc/systemd/system/{{ item }}"
+  loop:
+    - cri-docker.service
+    - cri-docker.socket
+  notify: Restart cri-docker daemon
+- name: Update service files
+  become: true
+  ansible.builtin.shell: "sed -i -e 's,/usr/bin/cri-dockerd,{{ install_path }}/cri-dockerd,' /etc/systemd/system/cri-docker.service"
+  changed_when: false
+  register: res
+  failed_when: res.rc != 0
+  notify: Restart cri-docker daemon
+  when: install_path != "/usr/bin"
+- name: Reload SystemD daemon
+  become: true
+  ansible.builtin.command: "systemctl daemon-reload"
+  notify: Restart cri-docker daemon

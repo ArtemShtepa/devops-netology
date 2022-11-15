@@ -1,0 +1,14 @@
+---
+- name: Import dynamic playbook
+  ansible.builtin.import_playbook: dynamic.yml
+- name: Remove SSH fingerprint
+  gather_facts: false
+  hosts: all
+  tasks:
+    - name: Remove fingerprints from known_hosts
+      ansible.builtin.command: "ssh-keygen -R {{ ansible_host }}"
+      register: check_result
+      failed_when: check_result.rc != 0
+      changed_when: false
+      delegate_to: localhost
+...

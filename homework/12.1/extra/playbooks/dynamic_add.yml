@@ -1,0 +1,33 @@
+---
+- name: Import dynamic playbook
+  ansible.builtin.import_playbook: dynamic.yml
+- name: Approve SSH fingerprint
+  gather_facts: false
+  hosts: all
+  tasks:
+    - name: debug
+      debug:
+        msg: "{{ ansible_host }}"
+    - name: Check known_hosts for
+      ansible.builtin.command: "ssh-keygen -F {{ ansible_host }}"
+      register: check_entry_in_known_hosts
+      failed_when: false
+      changed_when: false
+      ignore_errors: true
+      delegate_to: localhost
+    - name: Skip question for adding host key
+      ansible.builtin.set_fact:
+        # StrictHostKeyChecking can be "accept-new"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      when: check_entry_in_known_hosts.rc == 1
+    - name: Wait for instances ready
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        delay: 10
+        timeout: 300
+      delegate_to: localhost
+    - name: Add SSH fingerprint to known host
+      ansible.builtin.setup:
+      when: check_entry_in_known_hosts.rc == 1
+...

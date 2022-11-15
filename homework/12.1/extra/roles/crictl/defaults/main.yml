@@ -1,0 +1,4 @@
+---
+crictl_version: "1.25.0"
+install_path: "/usr/local/bin"
+...

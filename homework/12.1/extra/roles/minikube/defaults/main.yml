@@ -1,0 +1,5 @@
+---
+minikube_version: "1.28.0"
+kubectl_version: "1.25.0"
+install_path: "/usr/local/bin"
+...
