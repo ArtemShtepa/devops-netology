@@ -238,7 +238,7 @@ PS E:\>
 >  - собрать роль для установки minikube на aws сервисе (с установкой ingress)
 >  - собрать роль для запуска в кластере hello world
 
-Иформация по **Ansible plugin** для **Kubernates (K8S)**: [Kubernetes.Core](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/index.html)
+Иформация по **Ansible plugin** для **Kubernetes (K8S)**: [Kubernetes.Core](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/index.html)
 
 👍 При решении использовалась статья [How to Install Minikube on Ubuntu 20.04 LTS](https://www.fosstechnix.com/how-to-install-minikube-on-ubuntu-20-04-lts/)
 

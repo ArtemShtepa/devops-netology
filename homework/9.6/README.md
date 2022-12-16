@@ -173,8 +173,8 @@ CMD ["python3","/python_api/main.py"]
 ```
 
 В проект добавлены переменные:
-  - `KUBE_URL` - IP адрес кластера **Kubernates**
-  - `KUBE_TOKEN` - ключ доступа **Kubernates**
+  - `KUBE_URL` - IP адрес кластера **Kubernetes**
+  - `KUBE_TOKEN` - ключ доступа **Kubernetes**
   - `SERVER_IMAGE` - имя **Docker** образа, который будет разворачиваться на поде
 
 Настройка сборочных линий: `.gitlab-ci.yml`
@@ -226,7 +226,7 @@ deploy-image:
 Результат операций инициализации проекта (добавление всех файлов проекта и конфигурирование **CI/CD**) и замены правил:
 ![build-deploy](img/build-deploy.png)
 
-Функционирование контейнера в **pod kubernates**:
+Функционирование контейнера в **pod kubernetes**:
 ![kuber_log](img/kuber_log.png)
 
 ---
