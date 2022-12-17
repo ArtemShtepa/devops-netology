@@ -1,0 +1,36 @@
+all:
+  hosts:
+    node1:
+      ansible_host: 51.250.81.181
+      ansible_user: debian
+    node2:
+      ansible_host: 62.84.113.91
+      ansible_user: debian
+    node3:
+      ansible_host: 51.250.73.81
+      ansible_user: debian
+    node4:
+      ansible_host: 51.250.82.94
+      ansible_user: debian
+    node5:
+      ansible_host: 51.250.87.70
+      ansible_user: debian
+  children:
+    kube_control_plane:
+      hosts:
+        node1:
+    kube_node:
+      hosts:
+        node2:
+        node3:
+        node4:
+        node5:
+    etcd:
+      hosts:
+        node1:
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+    calico_rr:
+      hosts: {}
