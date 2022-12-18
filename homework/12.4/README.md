@@ -735,6 +735,8 @@ all:
 
 Готовые файлы конфигурации кластера: [kubespray](./kubespray/inventory/mycluster)
 
+Разворачивание кластера выполняется командой `ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml -b -v`
+
 ---
 
 ## Задание 2 (*): подготовить и проверить инвентарь для кластера в ~AWS~ Яндекс.Облаке
