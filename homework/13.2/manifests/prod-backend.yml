@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: backend
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: artemshtepa/netology-app:backend
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@db-svc:5432/news"
+          ports:
+            - name: backend-port
+              containerPort: 9000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/databank"
+              name: nfs-storage
+      volumes:
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: dynamic-volume-claim
+...

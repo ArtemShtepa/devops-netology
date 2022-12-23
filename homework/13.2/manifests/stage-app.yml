@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: testapp
+  name: testapp
+  namespace: stage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testapp
+  template:
+    metadata:
+      labels:
+        app: testapp
+    spec:
+      containers:
+        - name: frontend
+          image: artemshtepa/netology-app:frontend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: frontend-port
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/static"
+              name: tmp-volume
+        - name: backend
+          image: artemshtepa/netology-app:backend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: backend-port
+              containerPort: 9000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/tmp/cache"
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+...

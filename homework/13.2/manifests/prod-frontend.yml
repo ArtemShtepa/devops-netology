@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: artemshtepa/netology-app:frontend
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BASE_URL
+              value: http://backend-svc:9000
+          ports:
+            - name: frontend-port
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/databank"
+              name: nfs-storage
+      volumes:
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: dynamic-volume-claim
+...
