@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: testapp
+  name: testapp
+  namespace: stage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testapp
+  template:
+    metadata:
+      labels:
+        app: testapp
+    spec:
+      containers:
+        - name: frontend
+          image: artemshtepa/netology-app:frontend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: frontend-port
+              containerPort: 80
+              protocol: TCP
+        - name: backend
+          image: artemshtepa/netology-app:backend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: backend-port
+              containerPort: 9000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testapp-svc
+  namespace: stage
+spec:
+  selector:
+    app: testapp
+  ports:
+    - name: frontend-svc
+      port: 8000
+      targetPort: 80
+      protocol: TCP
+    - name: backend-svc
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+...

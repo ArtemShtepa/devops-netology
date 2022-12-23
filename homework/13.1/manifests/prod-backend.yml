@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: backend
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: artemshtepa/netology-app:backend
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@db-svc:5432/news"
+          ports:
+            - name: backend-port
+              containerPort: 9000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: production
+spec:
+  selector:
+    app: backend
+  ports:
+    - name: backend-port
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+...

@@ -130,7 +130,7 @@
 
 ### Конфигурация Kubernetes
 
-- 13.1. Контейнеры, поды, deployment, statefulset, services, endpoints
+- 13.1. [Контейнеры, поды, deployment, statefulset, services, endpoints](./homework/13.1/)
 - 13.2. Разделы и монтирование
 - 13.3. Работа c Kubectl
 - 13.4. Инструменты для упрощения написания конфигурационных файлов. Helm и Jsonnet
