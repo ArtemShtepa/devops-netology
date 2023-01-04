@@ -1,0 +1,26 @@
+---
+- name: Generate dynamic inventory
+  gather_facts: false
+  hosts: localhost
+  become: false
+  tasks:
+    - name: Get instances from Yandex.Cloud CLI
+      ansible.builtin.command: "yc compute instance list --format=yaml"
+      register: yc_instances
+      failed_when: yc_instances.rc != 0
+      changed_when: false
+    - name: Set instances to facts
+      ansible.builtin.set_fact:
+        _yc_instances: "{{ yc_instances.stdout | from_yaml }}"
+    - name: Add instances IP to hosts
+      ansible.builtin.add_host:
+        ansible_host: "{{ item['network_interfaces'][0]['primary_v4_address']['one_to_one_nat']['address'] }}"
+        ansible_ssh_user: "{{ item['boot_disk']['device_name'] }}"
+        host: "{{ item['name'] }}"
+      loop: "{{ _yc_instances }}"
+      changed_when: false
+    - name: Check instance count
+      ansible.builtin.debug:
+        msg: "Total instance count: {{ _yc_instances | length }}"
+      failed_when: _yc_instances | length == 0
+...

@@ -1,0 +1,10 @@
+---
+- name: Install NFS-common library
+  hosts: kube_node
+  tasks:
+    - name: try universal package manager plugin
+      become: true
+      ansible.builtin.package:
+        name: nfs-common
+        state: present
+...

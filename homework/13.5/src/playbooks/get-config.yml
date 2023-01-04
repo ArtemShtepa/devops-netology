@@ -1,0 +1,11 @@
+---
+- name: Get control plane config
+  hosts: kube_control_plane
+  tasks:
+    - name: Copy default admin config
+      become: true
+      ansible.builtin.fetch:
+        src: "/etc/kubernetes/admin.conf"
+        dest: "~/.kube/_config_from_{{ inventory_hostname }}"
+        flat: true
+...
