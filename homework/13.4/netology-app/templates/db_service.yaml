@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-db-svc
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ .Release.Name }}-db
+  ports:
+    - name: {{ .Release.Name }}-db-port
+      port: {{ .Values.db.port_ext | default .Values.db.port }}
+      targetPort: {{ .Values.db.port }}
+      protocol: TCP
+...

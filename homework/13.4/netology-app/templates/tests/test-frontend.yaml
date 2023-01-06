@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-test-frontend
+  annotations:
+    "helm.sh/hook": test
+    #"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  containers:
+    - name: curl-frontend-svc
+      image: curlimages/curl:latest
+      command: ['curl']
+      args: ['-s','http://{{ .Release.Name }}-frontend-svc:{{ .Values.frontend.port_ext | default .Values.frontend.port }}']
+  restartPolicy: Never

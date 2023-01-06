@@ -1,0 +1,16 @@
+{{- if not .Values.db.use_nfs }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.db.size }}
+  hostPath:
+    path: /data/pv-{{ .Release.Name }}
+  persistentVolumeReclaimPolicy: Retain
+...
+{{- end }}

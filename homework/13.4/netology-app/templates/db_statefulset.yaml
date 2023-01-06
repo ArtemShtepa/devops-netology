@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: {{ .Release.Name }}-db
+  name: {{ .Release.Name }}-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-db
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-db
+          image: {{ .Values.images.db }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: login
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: {{ .Values.db.name }}
+          volumeMounts:
+            - name: {{ .Release.Name }}-db-volume
+              mountPath: "/var/lib/postgresql/data"
+      volumes:
+        - name: {{ .Release.Name }}-db-volume
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-db-pvc
+...

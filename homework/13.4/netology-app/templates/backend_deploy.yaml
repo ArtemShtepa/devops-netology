@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}-backend
+  name: {{ .Release.Name }}-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.backend.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-backend
+          image: "{{ .Values.images.backend }}:{{ .Values.backend.image_tag }}"
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          env:
+            - name: PG_ACC_LG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: login
+            - name: PG_ACC_PW
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: password
+            - name: DATABASE_URL
+              value: "postgresql://$(PG_ACC_LG):$(PG_ACC_PW)@{{ .Release.Name }}-db-svc:{{ .Values.db.port_ext | default .Values.db.port }}/{{ .Values.db.name }}"
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /api/news/
+              port: {{ .Values.backend.port }}
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+              - curl
+              - http://{{ .Release.Name }}-backend-svc:{{ .Values.backend.port }}/api/news/
+            initialDelaySeconds: 10
+            periodSeconds: 10
+...
