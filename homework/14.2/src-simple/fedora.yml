@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fedora
+spec:
+  restartPolicy: Never
+  containers:
+  - name: fedora
+    image: "fedora"
+    command:
+    - bash
+    - -c
+    args:
+    - |
+      curl -s -v -H "X-Vault-Token: $MY_SECRET" -X GET http://10.233.75.26:8200/v1/secret/data/hvac
+    env:
+    - name: MY_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: vault-tkn
+          key: token
+...

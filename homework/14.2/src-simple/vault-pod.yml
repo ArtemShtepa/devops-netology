@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netology-vault
+spec:
+  containers:
+  - name: vault
+    image: "vault:1.12.2"
+    ports:
+    - containerPort: 8200
+      protocol: TCP
+    env:
+    - name: VAULT_DEV_ROOT_TOKEN_ID
+      value: "vault-root-token"
+    - name: VAULT_DEV_LISTEN_ADDRESS
+      value: 0.0.0.0:8200
+...
