@@ -1,0 +1,100 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-{{ .Release.Name }}-template
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+data:
+  source.tmpl: |
+    Secret lines:
+    \{\{ with secret "secrets/kv/dz-vault/test" \}\}
+    \{\{ .Data.data.text1 \}\}
+    \{\{ .Data.data.text2 \}\}
+    \{\{ end \}\}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-{{ .Release.Name }}-config
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+data:
+  vault-agent.hcl: |
+    pid_file = "/tmp/.pidfile"
+    auto_auth {
+      mount_path = "auth/approle"
+      method "approle" {
+        config = {
+          role_id_file_path = "/etc/vault/config/app-role-id"
+        }
+      }
+    }
+    template {
+      source      = "/etc/vault/config/template/source.tmpl"
+      destination = "/etc/vault/config/render/source.txt"
+    }
+    vault {
+      address = "http://{{ .Release.Name }}-svc:{{ .Values.port }}"
+    }
+    exit_after_auth = true
+  app-role-id: |
+    {{ .Values.vault_role_id }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-{{ .Release.Name }}-write
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    #"helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  initContainers:
+    - name: init-config
+      image: "vault:{{ .Chart.AppVersion }}"
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        runAsUser: 10001
+        runAsNonRoot: true
+        capabilities:
+          add:
+            - IPC_LOCK
+      args:
+        - "agent"
+        - "-config=/etc/vault/config/vault-agent.hcl"
+      env:
+        - name: SKIP_SETCAP
+          value: 'true'
+      volumeMounts:
+        - mountPath: /etc/vault/config
+          name: vault-agent-config
+        - mountPath: /etc/vault/config/template
+          name: vault-source-template
+        - mountPath: /etc/vault/config/render
+          name: vault-source-render
+  containers:
+    - name: busybox
+      image: busybox
+      command: ['ls']
+      args: ['-la','/etc/vault/config/render/']
+  volumes:
+    - name: vault-agent-config
+      configMap:
+        name: test-{{ .Release.Name }}-config
+    - name: vault-source-template
+      configMap:
+        name: test-{{ .Release.Name }}-template
+    - name: vault-source-render
+      emptyDir:
+        medium: Memory
+...

@@ -1,0 +1,130 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+data:
+  {{- if .Values.root_token }}
+  vault.root_token: "{{ .Values.root_token }}"
+  {{- else }}
+  vault.hcl: |
+    disable_mlock = true
+    ui = true
+    api_addr = "http://{{ .Release.Name }}-svc:{{ .Values.port }}"
+
+    listener "tcp" {
+      address = "[::]:{{ .Values.port }}"
+      tls_disable = 1
+    }
+    storage "file" {
+      path = "/vault/data"
+    }
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  serviceName: "{{ .Release.Name }}-svc"
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: vault
+          image: "vault:{{ .Chart.AppVersion }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+              protocol: "TCP"
+          {{- if .Values.root_token }}
+          env:
+          - name: VAULT_DEV_ROOT_TOKEN_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config
+                key: vault.root_token
+          - name: VAULT_DEV_LISTEN_ADDRESS
+            value: 0.0.0.0:{{ .Values.port }}
+          {{- else }}
+          args:
+            - "server"
+            - "-config=/etc/vault/config/vault.hcl"
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK # разрешает делать системный вызов mlock без повышения привилегий контейнера, выделение памяти большими страницами
+                - CAP_SETFCAP # нужно для мапинга юзер ид0 в нового пользака в неймпейсе ядра, вызов setcap
+          volumeMounts:
+            {{- if not .Values.root_token }}
+            - name: config
+              mountPath: /etc/vault/config
+            {{- end  }}
+            - name: {{ .Release.Name }}-data
+              mountPath: /vault/data
+      {{- if not .Values.root_token }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-config
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ .Release.Name }}-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        {{- if .Values.use_sc }}
+        storageClassName: {{ .Values.use_sc }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.disk }}
+---
+{{- if not .Values.use_sc }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.disk }}
+  hostPath:
+    path: /data/pv-{{ .Release.Name }}
+  persistentVolumeReclaimPolicy: Retain
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-svc
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+spec:
+  clusterIP: None
+  ports:
+    - name: http-port
+      port: {{ .Values.port }}
+  selector:
+    app: {{ .Release.Name }}
+...

@@ -1,0 +1,17 @@
+------------------------------------------------------------
+
+  Current chart version: {{ .Chart.Version }}
+  Vault image tag: {{ .Chart.AppVersion }}
+  Vault Port: {{ .Values.port }}
+  {{- if .Values.use_sc }}
+  Used storage class: {{ .Values.use_sc }}
+  {{- else }}
+  Storage: manual PV
+  {{- end }}
+  {{- if .Values.root_token }}
+  DEV mode with root token: {{ .Values.root_token }}
+  {{- else }}
+  PROD mode with vault initialization
+  {{- end }}
+
+------------------------------------------------------------

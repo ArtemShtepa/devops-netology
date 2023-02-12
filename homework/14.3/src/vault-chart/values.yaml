@@ -1,0 +1,10 @@
+port: 8202
+namespace: "dz-vault"
+use_sc: "nfs"
+disk: "1Gi"
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+root_token: ""
+role_id: "304d18cc-cb56-8641-254a-a1eac3b6fe34"
