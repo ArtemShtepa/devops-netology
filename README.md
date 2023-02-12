@@ -149,7 +149,7 @@
 - 14.2. [Синхронизация секретов с внешними сервисами. Vault](./homework/14.2/)
 - 14.3. [Карты конфигураций](./homework/14.3/)
 - 14.4. [Сервис-аккаунты](./homework/14.4/)
-- 14.5. SecurityContext, NetworkPolicies
+- 14.5. [SecurityContext, NetworkPolicies](./homework/14.5/)
 
 ### Организация проекта при помощи облачных провайдеров
 

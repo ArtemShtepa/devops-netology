@@ -1,0 +1,39 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-policy-1
+spec:
+  podSelector:
+    matchLabels:
+      app: pod-1
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: pod-2
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-policy-2
+spec:
+  podSelector:
+    matchLabels:
+      app: pod-2
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: pod-1
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: pod-1
+...
