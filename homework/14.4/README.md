@@ -29,10 +29,11 @@ root@debian11:~#
   1. Создать файл конифгурации с которым будет запускаться **kubectl**
 
 Подробная инструкция по реализации доступа пользователя к кластеру: [hamnsk/k8s](https://github.com/hamnsk/k8s/blob/main/serviceaccount.md) - автор **Сергей Андрюнин**
+> Применимо к версиям Kubernetes до 1.22, для более новых нужно добавлять **token** вручную
 
 ### Как создать сервис-аккаунт?
 
-Один из способов создания сервисного аккаунта - командой kubectl: `kubectl create serviceaccount <name>`, где `<name>` - имя создаваемого сервисного аккаунта.
+Один из способов создания сервисного аккаунта - командой **kubectl**: `kubectl create serviceaccount <name>`, где `<name>` - имя создаваемого сервисного аккаунта.
 
 По умолчанию создаваемый сервисный аккаунт привязывается к текущему **namespace**.
 Если нужно создать сервисный аккаунт в другом **namespace** достаточно сменить настройки
@@ -105,10 +106,11 @@ root@debian11:~#
 
 > При выводе с использованием `get` доступно два режима - вывод манифеста конкретного сервисного аккаунта (нужно указать его имя: `get <name>`) либо всех доступных (`get` без конкретизации)
 
-В **Kubernetes** начиная с версии `1.24` токена для сервисного аккаунта автоматически не генерируется, что видно по логу выше.
+В **Kubernetes** начиная с версии `1.22` постоянный токен для сервисного аккаунта автоматически не генерируется, что видно по логу выше.
+Вместо этого используется новый механизм короткоживущих токенов [TokenRequest](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/).
 Подробнее указано в [документации](https://kubernetes.io/docs/concepts/configuration/secret/#service-account-token-secrets)
 
-Также в документации приведён манифест создания токена, из которому подготовлен следующий:
+Однако, создание постоянного токена всё ещё доступно - так в документации приведён соответствующий манифест, на основе которого подготовлен следующий:
 
 ```yaml
 apiVersion: v1
@@ -778,3 +780,23 @@ sh-5.2# curl -H "Authorization: Bearer $TOKEN" --cacert $CACERT $K8S/api/v1/
 Документация [Kubernetes: Configure Service Accounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)
 
 Оператор PostgreSQL [PGO](https://github.com/CrunchyData/postgres-operator)
+
+---
+
+Получение имени долгоживущего токена из описания сервисного аккаунта `netology` из **namespace** `sa-test`:
+```console
+kubectl describe sa netology -n sa-test | grep 'Tokens' | awk '{ print $2 }'
+```
+или
+```console
+kubectl -n sa-test describe sa netology | grep 'Tokens' | rev | cut -d ' ' -f1 | rev
+```
+
+Получение самого долгоживущего токена из секрета сервисного аккаунта `netology` из **namespace** `sa-test`:
+```console
+kubectl describe secret -n sa-test $(kubectl describe sa netology -n sa-test | grep 'Tokens' | awk '{ print $3 }') | grep 'token:' | awk '{ print $2 }'
+```
+либо имея имя секрета
+```console
+kubectl describe secrets $TOKEN_NAME -n sa-test | grep 'token:' | rev | cut -d ' ' -f1 | rev
+```
