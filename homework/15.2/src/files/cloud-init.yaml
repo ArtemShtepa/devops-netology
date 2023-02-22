@@ -1,0 +1,18 @@
+#cloud-config
+write_files:
+- path: /var/www/html/index.html
+  owner: root:root
+  permissions: "0644"
+  content: |
+    <html>
+      <head><title>Storage TEST page</title></head>
+      <body bgcolor="black"><img width="100%" src="https://artem-shtepa-2023-02.storage.yandexcloud.net/my-photo" /></body>
+    </html>
+- path: /var/www/html/index.php
+  owner: root:root
+  permission: "0644"
+  content: |
+    <html>
+      <head><title>Server HOST page</title></head>
+      <body>Host address is <?php echo $_SERVER['SERVER_ADDR']; ?></body>
+    </html>
